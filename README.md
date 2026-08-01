@@ -39,16 +39,21 @@ PDF → extract.py (pymupdf) → chapters/ + images/
 
 - Python 3.9+
 - `pip install pymupdf Pillow`
+- **Recommended for books with figures or scanned PDFs**: the `docling` CLI
+  (produces markdown with images embedded as base64 — the pymupdf gap
+  analysis misses figures embedded in page scans)
 - For the translation phase: the [Hermes](https://hermes-agent.nousresearch.com)
   CLI with any configured provider/model (the worker contract is
   provider-agnostic — see SKILL.md). The extraction + build phases run
   without Hermes.
-- Optional: `docling` CLI for scanned PDFs.
 
 ## Quick start
 
 ```bash
 # 1. Extract text and figures
+#    Path A (recommended when figures matter): Docling
+#      docling book.pdf --to md --output . --image-export-mode embedded
+#    Path B (lightweight, no Docling):
 python3 scripts/extract.py book.pdf --out-dir output
 python3 scripts/extract_figures.py book.pdf --out-dir output/imagens
 

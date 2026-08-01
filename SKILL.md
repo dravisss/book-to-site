@@ -36,8 +36,9 @@ pip install pymupdf Pillow        # required (extraction + figures)
 Optional, per phase:
 - Translation (master-slave): a `hermes` CLI in PATH and any configured
   provider/model. The stack is provider-agnostic — see Worker Contract.
-- Scanned PDFs: `docling` CLI (advanced extractor, see Docling section).
-  Falls back to pymupdf text extraction + LLM re-write.
+- High-quality figure extraction: `docling` CLI — **recommended when the book
+  has real figures or is scanned** (see Docling section). Falls back to
+  pymupdf text + `extract_figures.py` (gap analysis) or LLM re-write.
 
 ## Architecture
 
@@ -79,7 +80,17 @@ chapters and estimate worker chunking.
 
 ### Phase 1: Extract
 
-**`scripts/extract.py`** (pymupdf, default): extracts text per page, saves all
+Two extraction paths:
+
+**Path A — Docling (recommended when figures matter).** `docling` produces a
+single markdown with images embedded as base64, handles scanned PDFs, and
+keeps heading structure. Use it when the book has real figures or is a scan —
+the pymupdf gap analysis misses figures embedded in page scans. See the
+[Docling section](#docling-recommended-for-figures).
+
+**Path B — pymupdf (lightweight, no Docling).**
+
+**`scripts/extract.py`** (pymupdf): extracts text per page, saves all
 embedded images, maps chapters from the PDF outline, writes one markdown file
 per chapter (`NNN_title.md`, filenames sanitized for shell safety) plus
 `index.json` at the output root (informational — the build script
@@ -214,19 +225,21 @@ Deliver ONLY the translated markdown. No explanations.
 
 Example for Portuguese: `{target_language}` = `português brasileiro acadêmico`.
 
-## Docling (optional, for scanned PDFs)
+## Docling (recommended for figures)
 
-For scanned PDFs where pymupdf text is unusable:
+Docling (IBM) is the first-class extractor when the book has real figures or
+is scanned: it outputs a single markdown with images embedded as base64
+inline, keeps heading structure, and handles OCR. The pymupdf path loses
+figures that are embedded in page scans — Docling does not.
 
 ```bash
 docling "book.pdf" --to md --output . --image-export-mode embedded
 ```
 
-Docling (IBM) produces a single large markdown with base64 images inline.
-Then: extract figures from the markdown (find "Figure X.Y" caption before each
-`data:image`), split into chapters manually using the book TOC (never by `## `
-headings — subsections explode into hundreds of fragments), and proceed with
-translation.
+Then: extract figures from the markdown (find the "Figure X.Y" caption before
+each `data:image`), split into chapters manually using the book TOC (never by
+`## ` headings — subsections explode into hundreds of fragments), and proceed
+with translation.
 
 **Pitfall**: Docling depends on `av`/`cv2` — if it crashes with a libavdevice
 conflict, `pip uninstall av` or use a clean venv. Fallback: pymupdf text +

@@ -2,7 +2,9 @@
 
 ## Images are page scans
 99% of images extracted by `extract.py` are full-page scans (1630x2551px).
-Real figures require `extract_figures.py` with gap analysis.
+Real figures require `extract_figures.py` with gap analysis — or better, the
+Docling path (`--image-export-mode embedded`), which keeps figures as base64
+inline and does not lose the ones embedded in page scans.
 
 ## CORS with file://
 `fetch()` doesn't work over `file://`. Solution: SPA with all content
