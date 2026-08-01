@@ -30,15 +30,17 @@ or when the user wants a summary (this pipeline translates everything).
 ## Prerequisites
 
 ```bash
-pip install pymupdf Pillow        # required (extraction + figures)
+pip install -r requirements.txt        # pymupdf + Pillow
 ```
 
 Optional, per phase:
 - Translation (master-slave): a `hermes` CLI in PATH and any configured
   provider/model. The stack is provider-agnostic — see Worker Contract.
 - High-quality figure extraction: `docling` CLI — **recommended when the book
-  has real figures or is scanned** (see Docling section). Falls back to
-  pymupdf text + `extract_figures.py` (gap analysis) or LLM re-write.
+  has real figures or is scanned** (`pip install docling`; on macOS with
+  Homebrew Python: `/opt/homebrew/bin/python3.11 -m pip install docling`).
+  Falls back to pymupdf text + `extract_figures.py` (gap analysis) or LLM
+  re-write.
 
 ## Architecture
 

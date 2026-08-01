@@ -1,0 +1,4 @@
+# book-to-site — base pipeline (extraction + build)
+# Path A (figures) additionally requires the `docling` CLI — see README.
+pymupdf>=1.24
+Pillow>=10.0

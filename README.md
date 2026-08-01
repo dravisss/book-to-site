@@ -37,15 +37,27 @@ PDF → extract.py (pymupdf) → chapters/ + images/
 
 ## Requirements
 
-- Python 3.9+
-- `pip install pymupdf Pillow`
-- **Recommended for books with figures or scanned PDFs**: the `docling` CLI
-  (produces markdown with images embedded as base64 — the pymupdf gap
-  analysis misses figures embedded in page scans)
-- For the translation phase: the [Hermes](https://hermes-agent.nousresearch.com)
-  CLI with any configured provider/model (the worker contract is
-  provider-agnostic — see SKILL.md). The extraction + build phases run
-  without Hermes.
+Base pipeline (extraction + build):
+
+```bash
+pip install -r requirements.txt        # pymupdf + Pillow
+```
+
+**Path A — Docling** (recommended when figures matter):
+
+```bash
+pip install docling                     # pulls heavy deps (torch)
+# macOS with Homebrew Python:
+/opt/homebrew/bin/python3.11 -m pip install docling
+```
+
+> Docling pulls heavy dependencies (torch). If you hit the `av`/`cv2`
+> libavdevice conflict, `pip uninstall av` or use a clean virtualenv.
+
+**Translation phase**: the [Hermes](https://hermes-agent.nousresearch.com)
+CLI with any configured provider/model (the worker contract is
+provider-agnostic — see SKILL.md). The extraction + build phases run
+without Hermes.
 
 ## Quick start
 
