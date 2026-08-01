@@ -81,7 +81,9 @@ chapters and estimate worker chunking.
 
 **`scripts/extract.py`** (pymupdf, default): extracts text per page, saves all
 embedded images, maps chapters from the PDF outline, writes one markdown file
-per chapter (`NNN_title.md`) plus `index.json`.
+per chapter (`NNN_title.md`, filenames sanitized for shell safety) plus
+`index.json` at the output root (informational — the build script
+auto-discovers chapters and does not read it).
 
 **`scripts/extract_figures.py`**: full-page scans (1630x2551px) are useless as
 figures. This script detects vertical gaps between text blocks and crops
@@ -101,7 +103,8 @@ Patterns:
 
 1. **One-shot**: chapters < 20 pages. One worker, translate directly.
 2. **Parallel chunking**: chapters > 40 pages. Split into ~19-page chunks,
-   N workers in parallel (batches of 3), merge with `cat`.
+   N workers in parallel, in **sequential batches of 3** (3 simultaneous
+   workers per batch), merge with `cat`.
 3. **write_file**: always instruct the worker to save via `write_file` at the
    end — stdout output gets lost.
 4. **Merge**: `cat parte1.md parte2.md > capitulo.md`
@@ -156,6 +159,36 @@ Critical flags:
 - `--quiet`: suppress banner/spinner (script mode)
 - `--max-turns N`: 3-4 for chapters, 4-5 for large chunks
 - `--cli`: avoid interactive TUI
+
+Recommended `--max-turns` by chapter size:
+
+| Chapter size | `--max-turns` |
+|---|---|
+| < 14 KB (~5-8 pages) | 3 |
+| 14-50 KB (~20-40 pages) | 4 |
+| > 50 KB (> 40 pages) | 5 (or chunk into ~19-page pieces) |
+
+### For external agents (non-Hermes orchestrators)
+
+The `terminal(background=True)` / `process(action='poll')` monitoring API is
+Hermes-specific. Any agent with a shell can run the same workers with plain
+bash — the worker saves its output via `write_file` (rule 8 of the translation
+prompt), so you never need to parse stdout:
+
+```bash
+export WORKER_MODEL=deepseek-v4-flash
+export WORKER_PROVIDER=opencode-go        # or your provider
+export WORKER_MAX_TURNS=4
+mkdir -p logs
+# launch 3 workers in parallel, one per prompt file
+for f in prompts/chunk_1.txt prompts/chunk_2.txt prompts/chunk_3.txt; do
+  hermes chat -m "$WORKER_MODEL" --provider "$WORKER_PROVIDER" \
+    --quiet --max-turns "$WORKER_MAX_TURNS" --cli -q "$(cat "$f")" \
+    > "logs/$(basename "$f" .txt).log" 2>&1 &
+done
+wait
+# all *_PT.md files are saved by the workers; logs are only for monitoring
+```
 
 ## Translation Prompt
 

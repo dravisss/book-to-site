@@ -11,6 +11,7 @@ Usage:
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -76,7 +77,8 @@ def main(argv=None):
     chapter_files = []
     for idx, ch in enumerate(chapters):
         start, end = ch["start_page"], ch["end_page"]
-        safe_title = ch["title"].replace("/", "-").replace(":", " -")[:80]
+        safe_title = re.sub(r"[^\w\- ]", "", ch["title"], flags=re.UNICODE)
+        safe_title = safe_title.strip().replace(" ", "_")[:80] or f"chapter_{idx + 1}"
         fname = f"{idx + 1:02d}_{safe_title}.md"
         fpath = cap_dir / fname
 
